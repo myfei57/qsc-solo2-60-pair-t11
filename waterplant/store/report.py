@@ -23,8 +23,9 @@ def store_state(store: Store) -> StoreState:
     return StoreState(keys=keys, size=len(keys))
 
 
-def describe_store(store: Store) -> str:
-    return f"store keys={store.count()}"
+def describe_store(store: Store, state: StoreState | None = None) -> str:
+    count = store.count() if state is None else state.size
+    return f"store keys={count}"
 
 
 def export_state(store: Store) -> dict[str, str]:

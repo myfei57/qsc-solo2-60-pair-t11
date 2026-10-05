@@ -104,5 +104,6 @@ class Auditor:
         entries = self.entries()
         return AuditState(entries=[entry.as_dict() for entry in entries], count=len(entries))
 
-    def describe(self) -> str:
-        return f"audit entries={len(self.entries())}"
+    def describe(self, state: AuditState | None = None) -> str:
+        count = len(self.entries()) if state is None else state.count
+        return f"audit entries={count}"

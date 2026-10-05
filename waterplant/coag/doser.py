@@ -58,8 +58,8 @@ class Doser:
         flow, present = self._flow.load_flow()
         return DoseState(ratio=self.current_ratio(), persisted_flow=flow, flow_present=present)
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: DoseState | None = None) -> str:
+        state = state or self.state()
         return (
             f"coagulant ratio={state.ratio:.4f} persisted_flow={state.persisted_flow:.4f} "
             f"present={state.flow_present}"

@@ -30,6 +30,7 @@ def route_table() -> list[Route]:
         Route("GET", "/snapshot", "full component snapshot", "snapshot"),
         Route("GET", "/describe", "human readable component summary", "describe"),
         Route("GET", "/report", "plain text control report", "report"),
+        Route("GET", "/status", "audited plant status: envelope, snapshot, describe, text", "plant_status"),
         Route("GET", "/pipeline", "treatment pipeline stages", "pipeline"),
         Route("GET", "/catalog", "list all HTTP routes", "catalog"),
         Route("GET", "/ops", "operator counters", "ops_counters"),

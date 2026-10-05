@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Callable, Iterable
 
+from urllib.parse import parse_qs
+
 from waterplant.store import Store
 
 from . import handlers
@@ -45,11 +47,23 @@ class Server:
             return error_response(500, str(exc))
 
     def dispatch(
-        self, method: str, path: str, payload: dict[str, object] | None = None
+        self,
+        method: str,
+        path: str,
+        payload: dict[str, object] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Response:
         """Call a route directly, used by the test suite and CLI probes."""
 
-        request = Request(method=method.upper(), path=path, query={}, payload=dict(payload or {}))
+        path, separator, raw_query = path.partition("?")
+        query = parse_qs(raw_query) if separator else {}
+        request = Request(
+            method=method.upper(),
+            path=path,
+            query=query,
+            payload=dict(payload or {}),
+            headers={str(key).lower(): str(value) for key, value in (headers or {}).items()},
+        )
         return self.respond(request)
 
     def __call__(

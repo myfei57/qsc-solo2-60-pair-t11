@@ -41,3 +41,7 @@ class Runtime:
         self.scheduler = Scheduler(store)
         self.trend = Trend(store)
         self.inventory = Inventory(store)
+        # Built last so the status service sees every component above.
+        from .status import StatusService
+
+        self.status = StatusService(self)

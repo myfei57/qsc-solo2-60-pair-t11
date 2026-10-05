@@ -100,6 +100,6 @@ class Controller:
     def state(self) -> BackwashState:
         return BackwashState(commands=self.command_list(), drains=self.drains())
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: BackwashState | None = None) -> str:
+        state = state or self.state()
         return f"backwash commands={len(state.commands)} drains={len(state.drains)}"

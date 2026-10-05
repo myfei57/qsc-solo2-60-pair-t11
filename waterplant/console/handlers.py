@@ -26,6 +26,7 @@ from .cycle import run_cycle
 from .http import Request, Response, csv_response, json_response, text_response
 from .report import text_report
 from .routes import route_table
+from .status import render_text
 from .system import system_payload
 from .version import version_payload
 
@@ -45,15 +46,33 @@ def health_checks(server: "Server", request: Request) -> Response:
 
 
 def snapshot(server: "Server", request: Request) -> Response:
-    return json_response(snapshot_module.collect(server.runtime))
+    key = request.idempotency_key()
+    return json_response(snapshot_module.collect(server.runtime, key))
 
 
 def describe(server: "Server", request: Request) -> Response:
-    return json_response(describe_module.collect(server.runtime))
+    key = request.idempotency_key()
+    return json_response(describe_module.collect(server.runtime, key))
 
 
 def report(server: "Server", request: Request) -> Response:
-    return text_response(text_report(server.runtime))
+    key = request.idempotency_key()
+    return text_response(text_report(server.runtime, key))
+
+
+def plant_status(server: "Server", request: Request) -> Response:
+    """One collection exposed three ways; format defaults to the envelope."""
+
+    key = request.idempotency_key()
+    status = server.runtime.status.collect(key)
+    fmt = (request.query.get("format", ["envelope"])[0] if request.query else "envelope")
+    if fmt == "snapshot":
+        return json_response(status.snapshot_payload())
+    if fmt == "describe":
+        return json_response(status.describe_payload())
+    if fmt == "text":
+        return text_response(render_text(status))
+    return json_response(status.envelope_payload())
 
 
 def pipeline(server: "Server", request: Request) -> Response:

@@ -135,8 +135,8 @@ class Bank:
             count=len(beds),
         )
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: BankState | None = None) -> str:
+        state = state or self.state()
         return f"filter beds={state.count} on_duty={state.on_duty or ''}"
 
     def _require(self, bed_id: str) -> Bed:

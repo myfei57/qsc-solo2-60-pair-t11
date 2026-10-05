@@ -36,5 +36,6 @@ class Sampler:
     def state(self) -> TurbState:
         return TurbState(last_verdict=self._last)
 
-    def describe(self) -> str:
-        return f"turbidity last_verdict={self._last:.4f}"
+    def describe(self, state: TurbState | None = None) -> str:
+        verdict = self._last if state is None else state.last_verdict
+        return f"turbidity last_verdict={verdict:.4f}"

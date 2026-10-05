@@ -142,8 +142,8 @@ class Inventory:
             lots=[lot.as_dict() for lot in self.lots()],
         )
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: InventoryState | None = None) -> str:
+        state = state or self.state()
         return (
             f"inventory balance={state.balance:.4f} reorder={state.reorder_level:.4f} "
             f"alerts={len(state.needs_reorder)}"

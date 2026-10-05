@@ -40,8 +40,8 @@ class FlowRepository:
         flow, present = self.load_flow()
         return FlowState(flow=flow, turbidity=self.turbidity(), present=present)
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: FlowState | None = None) -> str:
+        state = state or self.state()
         return (
             f"intake flow={state.flow:.4f} turbidity={state.turbidity:.4f} "
             f"present={state.present}"

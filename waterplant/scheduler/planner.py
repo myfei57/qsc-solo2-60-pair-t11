@@ -57,6 +57,6 @@ class Scheduler:
             entries=self.plan(bank),
         )
 
-    def describe(self, bank: Bank) -> str:
-        state = self.state(bank)
+    def describe(self, bank: Bank, state: ScheduleState | None = None) -> str:
+        state = state or self.state(bank)
         return f"schedule threshold={state.threshold:.4f} due={len(state.due)}"

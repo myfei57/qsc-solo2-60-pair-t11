@@ -94,6 +94,6 @@ class Trend:
     def reset(self) -> None:
         self._store.delete(FLOW_TREND_KEY)
 
-    def describe(self) -> str:
-        stats = self.stats()
+    def describe(self, state: TrendStats | None = None) -> str:
+        stats = state or self.stats()
         return f"intake trend samples={stats.samples} mean={stats.mean:.4f}"

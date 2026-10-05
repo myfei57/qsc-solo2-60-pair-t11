@@ -60,8 +60,8 @@ class Well:
     def state(self) -> WellState:
         return WellState(level=self.level(), residual_target=self.residual_target())
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: WellState | None = None) -> str:
+        state = state or self.state()
         return (
             f"clearwell level={state.level:.4f} residual_target={state.residual_target:.4f}"
         )

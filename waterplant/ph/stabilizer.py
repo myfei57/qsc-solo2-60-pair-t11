@@ -89,8 +89,8 @@ class Stabilizer:
             band_high=PH_BAND_HIGH,
         )
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: PhState | None = None) -> str:
+        state = state or self.state()
         return (
             f"ph value={state.value:.4f} stable={state.stable} "
             f"band={state.band_low:.1f}-{state.band_high:.1f}"

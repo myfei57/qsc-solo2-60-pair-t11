@@ -94,6 +94,16 @@ class Request:
     path: str
     query: dict[str, list[str]]
     payload: dict[str, object]
+    headers: dict[str, str]
+
+    def idempotency_key(self) -> str:
+        """Key that makes a retried summary return the same capture."""
+
+        header = self.headers.get("idempotency-key", "")
+        if header:
+            return header
+        values = self.query.get("idempotency_key", [])
+        return values[0] if values else ""
 
     def float_field(self, name: str, default: float = 0.0) -> float:
         return _to_float(name, self.payload.get(name, default))
@@ -161,4 +171,13 @@ def build_request(environ: dict[str, object]) -> Request:
         if not isinstance(decoded, dict):
             raise RequestError(400, "JSON body must be an object")
         payload = decoded
-    return Request(method=method, path=path, query=query, payload=payload)
+    headers = {
+        str(name)[5:].lower().replace("_", "-"): str(value)
+        for name, value in environ.items()
+        if str(name).startswith("HTTP_")
+    }
+    if environ.get("CONTENT_TYPE"):
+        headers["content-type"] = str(environ["CONTENT_TYPE"])
+    if environ.get("CONTENT_LENGTH"):
+        headers["content-length"] = str(environ["CONTENT_LENGTH"])
+    return Request(method=method, path=path, query=query, payload=payload, headers=headers)

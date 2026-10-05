@@ -27,5 +27,6 @@ class Calibration:
     def state(self) -> CalibState:
         return CalibState(factor=self.current())
 
-    def describe(self) -> str:
-        return f"flow calibration factor={self.current():.4f}"
+    def describe(self, state: CalibState | None = None) -> str:
+        factor = self.current() if state is None else state.factor
+        return f"flow calibration factor={factor:.4f}"

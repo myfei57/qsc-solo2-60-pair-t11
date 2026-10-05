@@ -39,6 +39,6 @@ class Doser:
     def state(self) -> ChlorState:
         return ChlorState(target=self.current_target(), dose=self.dose_for_residual())
 
-    def describe(self) -> str:
-        state = self.state()
+    def describe(self, state: ChlorState | None = None) -> str:
+        state = state or self.state()
         return f"chlorine target={state.target:.4f} dose={state.dose:.4f}"

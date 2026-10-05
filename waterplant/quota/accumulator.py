@@ -34,5 +34,6 @@ class Accumulator:
     def state(self) -> AccumState:
         return AccumState(value=self.value())
 
-    def describe(self) -> str:
-        return f"quota accumulator value={self.value():.4f}"
+    def describe(self, state: AccumState | None = None) -> str:
+        value = self.value() if state is None else state.value
+        return f"quota accumulator value={value:.4f}"
