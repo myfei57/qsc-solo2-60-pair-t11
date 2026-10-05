@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+
 from waterplant.audit import Auditor
 from waterplant.backwash import Controller
 from waterplant.chlor import Doser as ChlorDoser
@@ -22,6 +24,8 @@ class Runtime:
     """Owns one instance of each control component for a single store."""
 
     def __init__(self, store: Store) -> None:
+        # Serialises component updates against point-in-time whole-plant reads.
+        self.guard = threading.RLock()
         bank = Bank()
         coag_doser = CoagDoser(store)
         self.store = store
@@ -41,3 +45,7 @@ class Runtime:
         self.scheduler = Scheduler(store)
         self.trend = Trend(store)
         self.inventory = Inventory(store)
+        # Bound after every component exists; it owns the shared frozen summary.
+        from .plant import PlantSummaryService
+
+        self.plant_summary = PlantSummaryService(self)

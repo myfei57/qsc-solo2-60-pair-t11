@@ -18,13 +18,23 @@ class Server:
 
     def __init__(self, store: Store) -> None:
         self.runtime = Runtime(store)
+        self.plant_summary = self.runtime.plant_summary
         self.router = Router()
         self.metrics = Metrics()
         register_routes(self.router, handlers)
 
     def respond(self, request: Request) -> Response:
-        response = self._route(request)
+        with self.runtime.guard:
+            response = self._route(request)
         self.metrics.record(request.method, request.path, response.status)
+        successful = 200 <= response.status < 300
+        mutating_post = (
+            request.method == "POST"
+            and request.path != "/plant/summary"
+        )
+        mutating_get = request.method == "GET" and request.path == "/backwash/order"
+        if successful and (mutating_post or mutating_get):
+            self.plant_summary.invalidate()
         return response
 
     def _route(self, request: Request) -> Response:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from waterplant.chlor import validate_demand
@@ -16,15 +17,14 @@ from waterplant.quota import Quota, check_quota, validate_amount
 from waterplant.reporting import audit_export, telemetry_export, to_csv
 from waterplant.scheduler import validate_threshold
 from waterplant.store import export_state
+from waterplant.store.commands import load_commands
 
 from . import checks, history, ops
-from . import describe as describe_module
 from . import simulate as simulate_module
-from . import snapshot as snapshot_module
 from . import telemetry as telemetry_module
 from .cycle import run_cycle
 from .http import Request, Response, csv_response, json_response, text_response
-from .report import text_report
+from .plant import SUMMARY_AUDIT_KEY, snapshot_from_summary
 from .routes import route_table
 from .system import system_payload
 from .version import version_payload
@@ -45,15 +45,50 @@ def health_checks(server: "Server", request: Request) -> Response:
 
 
 def snapshot(server: "Server", request: Request) -> Response:
-    return json_response(snapshot_module.collect(server.runtime))
+    summary = server.plant_summary.current()
+    return json_response(snapshot_from_summary(summary))
 
 
 def describe(server: "Server", request: Request) -> Response:
-    return json_response(describe_module.collect(server.runtime))
+    return json_response({
+        name: item.description
+        for name, item in server.plant_summary.current().components.items()
+    })
 
 
 def report(server: "Server", request: Request) -> Response:
-    return text_response(text_report(server.runtime))
+    return text_response(server.plant_summary.current().as_dict()["report"])
+
+
+def plant_summary_create(server: "Server", request: Request) -> Response:
+    idempotency_key = request.str_field("idempotency_key")
+    summary, replayed, conflict = server.plant_summary.collect(idempotency_key)
+    if conflict:
+        return json_response({"error": conflict, "status": summary.status}, status=409)
+    return json_response(summary.as_dict())
+
+
+def plant_status(server: "Server", request: Request) -> Response:
+    return json_response(server.plant_summary.current().as_dict())
+
+
+def plant_summary_latest(server: "Server", request: Request) -> Response:
+    summary = server.plant_summary.latest()
+    if summary is None:
+        return json_response({"error": "no audited plant summary", "present": False}, status=404)
+    return json_response(summary.as_dict())
+
+
+def plant_summary_audit(server: "Server", request: Request) -> Response:
+    entries = []
+    for raw_entry in load_commands(server.runtime.store, SUMMARY_AUDIT_KEY):
+        try:
+            entry = json.loads(raw_entry)
+        except ValueError:
+            continue
+        if isinstance(entry, dict):
+            entries.append(entry)
+    return json_response({"entries": entries, "count": len(entries)})
 
 
 def pipeline(server: "Server", request: Request) -> Response:
